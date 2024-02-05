@@ -25,8 +25,8 @@ class QMCSampler(object):
         self.valid_fn = state.valid_fn
         self.lnp_fn = state.lnp_fn  # log probability function
         self.a = a
-        self.temp = temp
-        self.gaussian = gaussian
+        self.temp = temp # optional temperature argument
+        self.gaussian = gaussian # whether to use gaussian random or not
         self.acc_rate = 0.
         self.accepted = 0
         self.rejected = 0
@@ -66,7 +66,7 @@ class QMCSampler(object):
             else:
                 ti = np.random.uniform(-self.a, self.a)
                 t_new = np.random.uniform(-self.a, self.a)
-
+            # do lagrangian interpolation
             wi = l_interpolation(t_new, ti, tj, tk)
             wj = l_interpolation(t_new, tj, tk, ti)
             wk = l_interpolation(t_new, tk, ti, tj)
@@ -75,6 +75,7 @@ class QMCSampler(object):
             new_state = QMCState(self.n, self.lnp_fn,
                                      wi * prev_states[i].p + wj * prev_states[j].p + wk * prev_states[k].p)
 
+            # check validty of the new state
             lnp_new = self.lnp_fn(new_state.p)
             ok = False
             if not np.isfinite(lnp_new):
@@ -94,13 +95,11 @@ class QMCSampler(object):
 
             # the following block is equivalent to the acceptance function
             # start checking acceptance
-            p = (dlnp / self.temp) + np.log(np.power(abs(wi), self.n))
+            p = (dlnp / self.temp) + np.log(np.power(abs(wi), self.n)) # the acceptance ratio
             accept = p > np.log(np.random.uniform())
             # end checking acceptance
 
             if ok and accept:  # check the acceptance of a newly generated state
-                # n_accepted += 1 TODO: mind this, should have something that checks the number of accepted states
-                new_states.append(new_state)
                 self.accepted += 1
             else:
                 new_states.append(prev_states[i])
@@ -108,6 +107,9 @@ class QMCSampler(object):
         curr_states.append(np.array(new_states))
 
     def run_qmc(self, starting_guesses, n_steps):
+        """
+        runs the qmc for n_steps
+        """
         self.chain.append(starting_guesses)
         if self.n_walkers < 3:
             raise ValueError("n_walkers too small: {}".format(self.n_walkers))
@@ -115,3 +117,4 @@ class QMCSampler(object):
         for i_step in range(n_steps):
             self.one_qmc_sweep(self.chain)
         self.chain = np.array(self.chain)[1:]
+        self.acc_rate = self.accepted/(self.accepted+self.rejected)

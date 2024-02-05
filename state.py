@@ -5,10 +5,10 @@ import numpy as np
 class QMCState:
     def __init__(self, n, lnp_fn, params, valid_fn=None):
         self.lnL = None
-        self.n = n
-        self.p = params
-        self.lnp_fn = lnp_fn
-        self.valid_fn = valid_fn
+        self.n = n # dimension of the state
+        self.p = params # the data/parameter this state contains
+        self.lnp_fn = lnp_fn # the log_probability function
+        self.valid_fn = valid_fn # the function that checks the validity of the state
         self.evaluate()
 
     def n_dim(self):
@@ -41,6 +41,9 @@ class QMCState:
         return repr(self.p)
 
     def evaluate(self):
+        """
+        evaluates the log probablity of this state
+        """
         if self.valid():
             self.lnL = self.lnp_fn(self.p)
         else:
@@ -49,6 +52,10 @@ class QMCState:
 
 
 def set_up_starting_guesses(state, guess):
+    """
+    set up the qmc states version of the starting guesses given the starting guesses of the parameter
+    guesses should have shape (nwalkers, ndim)
+    """
     shape = np.shape(guess)
     starting_guesses = []
     row = shape[0]
