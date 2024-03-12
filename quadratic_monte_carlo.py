@@ -101,6 +101,7 @@ class QMCSampler(object):
 
             if ok and accept:  # check the acceptance of a newly generated state
                 self.accepted += 1
+                new_states.append(new_state)
             else:
                 new_states.append(prev_states[i])
                 self.rejected += 1
