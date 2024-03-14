@@ -63,3 +63,13 @@ def set_up_starting_guesses(state, guess):
         state_rc = QMCState(state.n_dim(), state.lnp_fn, guess[r])
         starting_guesses.append(state_rc)
     return np.array(starting_guesses)
+
+def states2array(states):
+    r, c = np.shape(states)
+    arr = np.zeros_like(states)
+    arr = []
+    for i in range(r):
+        for j in range(c):
+            params = states[i, j].p
+            arr.append(params)
+    return np.array(arr)
